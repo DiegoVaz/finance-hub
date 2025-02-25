@@ -3,27 +3,30 @@ import { join } from 'node:path'
 import database from 'infra/database'
 
 export default async function migrations(request, response) {
-  const dbClient = await database.getNewClient()
+  const allowedMethods = ['GET', 'POST']
 
-  const defaultMigrationsOptions = {
-    dbClient,
-    dryRun: true,
-    dir: join('infra', 'migrations'),
-    direction: 'up',
-    verbose: true,
-    migrationsTable: 'pgmigrations',
+  if (!allowedMethods.includes(request.method)) {
+    return response.status(405).json({
+      error: `Method ${request.method} not allowed`,
+    })
   }
 
+  let dbClient
+
   try {
-    if (request.method !== 'GET' && request.method !== 'POST') {
-      response.status(405).json({
-        message: 'Method not Allowed',
-      })
+    dbClient = await database.getNewClient()
+
+    const defaultMigrationsOptions = {
+      dbClient,
+      dryRun: true,
+      dir: join('infra', 'migrations'),
+      direction: 'up',
+      verbose: true,
+      migrationsTable: 'pgmigrations',
     }
 
     if (request.method === 'GET') {
       const pedingMigrations = await migrationRunner(defaultMigrationsOptions)
-
       response.status(200).json(pedingMigrations)
     }
 
@@ -40,7 +43,8 @@ export default async function migrations(request, response) {
       response.status(200).json(migratedMigrations)
     }
   } catch (error) {
-    console.log(error)
+    console.error(error)
+    throw error
   } finally {
     await dbClient.end()
   }
