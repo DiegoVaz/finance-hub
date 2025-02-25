@@ -14,26 +14,34 @@ export default async function migrations(request, response) {
     migrationsTable: 'pgmigrations',
   }
 
-  if (request.method === 'GET') {
-    const pedingMigrations = await migrationRunner(defaultMigrationsOptions)
-    await dbClient.end()
-    response.status(200).json(pedingMigrations)
-  }
-
-  if (request.method === 'POST') {
-    const migratedMigrations = await migrationRunner({
-      ...defaultMigrationsOptions,
-      dryRun: false,
-    })
-
-    await dbClient.end()
-
-    if (migratedMigrations.length > 0) {
-      response.status(201).json(migratedMigrations)
+  try {
+    if (request.method !== 'GET' && request.method !== 'POST') {
+      response.status(405).json({
+        message: 'Method not Allowed',
+      })
     }
 
-    response.status(200).json(migratedMigrations)
-  }
+    if (request.method === 'GET') {
+      const pedingMigrations = await migrationRunner(defaultMigrationsOptions)
 
-  return response.status(405)
+      response.status(200).json(pedingMigrations)
+    }
+
+    if (request.method === 'POST') {
+      const migratedMigrations = await migrationRunner({
+        ...defaultMigrationsOptions,
+        dryRun: false,
+      })
+
+      if (migratedMigrations.length > 0) {
+        response.status(201).json(migratedMigrations)
+      }
+
+      response.status(200).json(migratedMigrations)
+    }
+  } catch (error) {
+    console.log(error)
+  } finally {
+    await dbClient.end()
+  }
 }
