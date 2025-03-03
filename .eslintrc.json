@@ -5,5 +5,4 @@
     "plugin:jest/recommended",
     "prettier"
   ]
-
 }
