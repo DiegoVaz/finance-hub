@@ -12,7 +12,7 @@ async function status(request, response) {
   const updateAt = new Date().toISOString()
 
   response.status(200).json({
-    update_at: updateAt,
+    updated_at: updateAt,
     dependencies: {
       database: {
         version: databaseVersion.rows[0].server_version,
