@@ -13,7 +13,7 @@ describe('GET /api/v1/status', () => {
       const responseBody = await response.json()
       expect(responseBody.updated_at).toBeDefined()
 
-      const praseUpdateAt = new Date(responseBody.update_at).toISOString()
+      const praseUpdateAt = new Date(responseBody.updated_at).toISOString()
       expect(responseBody.updated_at).toEqual(praseUpdateAt)
 
       expect(responseBody.dependencies.database.version).toEqual('17.4')
